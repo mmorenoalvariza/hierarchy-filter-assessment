@@ -2,48 +2,30 @@
 
 ## Code under review
 
-```java
-import java.util.concurrent.ConcurrentHashMap;
+```kotlin
+import java.util.concurrent.ConcurrentHashMap
 
-public class SimpleCache<K, V> {
-    private final ConcurrentHashMap<K, CacheEntry<V>> cache = new ConcurrentHashMap<>();
-    private final long ttlMs = 60000; // 1 minute
+class SimpleCache<K, V> {
+    private val cache = ConcurrentHashMap<K, CacheEntry<V>>()
+    private val ttlMs = 60_000L  // 1 minute
 
-    public static class CacheEntry<V> {
-        private final V value;
-        private final long timestamp;
+    data class CacheEntry<V>(val value: V, val timestamp: Long)
 
-        public CacheEntry(V value, long timestamp) {
-            this.value = value;
-            this.timestamp = timestamp;
-        }
-
-        public V getValue() {
-            return value;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
+    fun put(key: K, value: V) {
+        cache[key] = CacheEntry(value, System.currentTimeMillis())
     }
 
-    public void put(K key, V value) {
-        cache.put(key, new CacheEntry<>(value, System.currentTimeMillis()));
-    }
-
-    public V get(K key) {
-        CacheEntry<V> entry = cache.get(key);
+    fun get(key: K): V? {
+        val entry = cache[key]
         if (entry != null) {
-            if (System.currentTimeMillis() - entry.getTimestamp() < ttlMs) {
-                return entry.getValue();
+            if (System.currentTimeMillis() - entry.timestamp < ttlMs) {
+                return entry.value
             }
         }
-        return null;
+        return null
     }
 
-    public int size() {
-        return cache.size();
-    }
+    fun size(): Int = cache.size
 }
 ```
 
